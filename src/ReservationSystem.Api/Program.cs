@@ -1,5 +1,10 @@
 using System.Text.Json.Serialization;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using ReservationSystem.Api.Extensions;
+using ReservationSystem.Api.Middleware;
+using ReservationSystem.Api.OpenApi;
+using ReservationSystem.Application;
 using ReservationSystem.Infrastructure;
 using Scalar.AspNetCore;
 using Serilog;
@@ -14,14 +19,25 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .WriteTo.Console());
 
 // --- Application & Infrastructure services ---
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Serialize enums as strings in API responses.
-builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+// --- Authentication & authorization (JWT bearer + role policies) ---
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
-// --- OpenAPI document (served at /openapi/v1.json) ---
-builder.Services.AddOpenApi();
+// --- MVC controllers + FluentValidation auto-validation ---
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.AddFluentValidationAutoValidation();
+
+// --- Consistent error responses (RFC 7807 ProblemDetails) ---
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+// --- OpenAPI document (with JWT Bearer scheme for Scalar) ---
+builder.Services.AddOpenApi(options =>
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 
 // --- Health checks (PostgreSQL connectivity) ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -33,6 +49,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 
 // --- API documentation: OpenAPI JSON + Scalar interactive UI (dev only) ---
@@ -45,6 +62,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
 
 // --- Health endpoint ---
 app.MapHealthChecks("/health", new HealthCheckOptions

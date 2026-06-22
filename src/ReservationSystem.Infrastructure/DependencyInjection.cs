@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ReservationSystem.Application.Common.Interfaces;
 using ReservationSystem.Infrastructure.Persistence;
 
 namespace ReservationSystem.Infrastructure;
@@ -26,6 +27,10 @@ public static class DependencyInjection
 
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        // Expose the DbContext to the Application layer through its abstraction.
+        services.AddScoped<IApplicationDbContext>(provider =>
+            provider.GetRequiredService<AppDbContext>());
 
         return services;
     }

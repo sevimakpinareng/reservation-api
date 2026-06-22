@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ReservationSystem.Application.Common.Interfaces;
 using ReservationSystem.Domain.Common;
 using ReservationSystem.Domain.Entities;
 
@@ -9,13 +10,16 @@ namespace ReservationSystem.Infrastructure.Persistence;
 /// Applies entity configurations, a global soft-delete filter, and automatic
 /// auditing of <see cref="BaseEntity.CreatedAt"/> / <see cref="BaseEntity.UpdatedAt"/>.
 /// </summary>
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options)
+    : DbContext(options), IApplicationDbContext
 {
     public DbSet<User> Users => Set<User>();
 
     public DbSet<Service> Services => Set<Service>();
 
     public DbSet<Appointment> Appointments => Set<Appointment>();
+
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,6 +32,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Service>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Appointment>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<RefreshToken>().HasQueryFilter(e => !e.IsDeleted);
     }
 
     public override int SaveChanges()

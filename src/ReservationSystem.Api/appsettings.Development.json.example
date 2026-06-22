@@ -10,5 +10,12 @@
   },
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5432;Database=reservationdb;Username=reservation;Password=<your-local-password>"
+  },
+  "Jwt": {
+    "Issuer": "ReservationSystem",
+    "Audience": "ReservationSystem",
+    "Secret": "<a-long-random-secret-at-least-32-characters>",
+    "AccessTokenMinutes": 15,
+    "RefreshTokenDays": 7
   }
 }
