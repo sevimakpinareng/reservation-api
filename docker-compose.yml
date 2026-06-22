@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: reservation-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-reservationdb}
+      POSTGRES_USER: ${POSTGRES_USER:-reservation}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your .env file}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - reservation_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-reservation} -d ${POSTGRES_DB:-reservationdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  reservation_pgdata:
+    name: reservation_pgdata

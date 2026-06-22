@@ -1,0 +1,54 @@
+## .NET / build output
+bin/
+obj/
+out/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+artifacts/
+*.user
+*.userosscache
+*.suo
+*.dbmdl
+
+## Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.swp
+*.DS_Store
+
+## Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+TestResults/
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+project.lock.json
+project.fragment.lock.json
+
+## EF Core
+*.db
+*.db-shm
+*.db-wal
+
+## ---- Secrets & local configuration (NEVER commit) ----
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.Local.json
+.env
+*.pfx
+secrets.json
+
+## OS / misc
+Thumbs.db
+*.log
