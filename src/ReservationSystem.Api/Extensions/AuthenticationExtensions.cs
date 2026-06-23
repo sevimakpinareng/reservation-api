@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using ReservationSystem.Api.Authorization;
 using ReservationSystem.Application.Authentication;
 using ReservationSystem.Domain.Enums;
 
@@ -54,9 +55,14 @@ public static class AuthenticationExtensions
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("Customer", policy => policy.RequireRole(nameof(UserRole.Customer)));
-            options.AddPolicy("BusinessOwner", policy => policy.RequireRole(nameof(UserRole.BusinessOwner)));
-            options.AddPolicy("Admin", policy => policy.RequireRole(nameof(UserRole.Admin)));
+            options.AddPolicy(AuthorizationPolicies.Customer,
+                policy => policy.RequireRole(nameof(UserRole.Customer)));
+            options.AddPolicy(AuthorizationPolicies.BusinessOwner,
+                policy => policy.RequireRole(nameof(UserRole.BusinessOwner)));
+            options.AddPolicy(AuthorizationPolicies.Admin,
+                policy => policy.RequireRole(nameof(UserRole.Admin)));
+            options.AddPolicy(AuthorizationPolicies.ManageServices,
+                policy => policy.RequireRole(nameof(UserRole.BusinessOwner), nameof(UserRole.Admin)));
         });
 
         return services;

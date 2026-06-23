@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ReservationSystem.Application.Authentication.Services;
 using ReservationSystem.Application.Common;
 using ReservationSystem.Application.Common.Interfaces;
+using ReservationSystem.Application.Services.Services;
 
 namespace ReservationSystem.Application;
 
@@ -15,6 +16,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssemblyContaining<IApplicationMarker>();
 
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IServiceService, ServiceService>();
         services.AddSingleton<ITokenService, JwtTokenService>();
 
         return services;

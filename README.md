@@ -1,10 +1,10 @@
 # Reservation System API
 
 A reservation / appointment management REST API built with .NET 10 and a clean,
-layered architecture. **Phases 1–2 are complete**: solution scaffolding,
-infrastructure, the domain model, and JWT authentication with refresh-token
-rotation and role-based authorization. Business logic (Service/Appointment CRUD)
-and tests arrive in later phases.
+layered architecture. **Phases 1–3 are complete**: solution scaffolding,
+infrastructure, the domain model, JWT authentication with refresh-token rotation
+and role-based authorization, and service-management CRUD with pagination,
+filtering, and sorting. Appointment booking logic and tests arrive in later phases.
 
 > 🔗 **Live demo:** _TODO — add deployment link_
 >
@@ -164,6 +164,42 @@ registrations default to the `Customer` role.
 Errors are returned as RFC 7807 **ProblemDetails** with meaningful status codes
 (`400` validation, `401` invalid credentials/token, `409` email already exists).
 
+## Services
+
+CRUD for bookable services. Reads are public; writes require the **BusinessOwner**
+or **Admin** role (enforced by the `ManageServices` policy). Deletes are **soft**
+(`IsDeleted = true`) and the row is retained but hidden by the global query filter.
+
+| Method | Route                | Auth                  | Description                       |
+| ------ | -------------------- | --------------------- | --------------------------------- |
+| GET    | `/api/services`      | Public                | Paged list (active only default)  |
+| GET    | `/api/services/{id}` | Public                | Single service                    |
+| POST   | `/api/services`      | BusinessOwner / Admin | Create (201 + `Location`)         |
+| PUT    | `/api/services/{id}` | BusinessOwner / Admin | Update                            |
+| DELETE | `/api/services/{id}` | BusinessOwner / Admin | Soft delete (204)                 |
+
+**List query parameters** (`GET /api/services`):
+
+| Param            | Type   | Default | Notes                                          |
+| ---------------- | ------ | ------- | ---------------------------------------------- |
+| `page`           | int    | 1       | 1-based; values < 1 reset to 1                 |
+| `pageSize`       | int    | 20      | Clamped to a max of **100**                    |
+| `search`         | string | –       | Case-insensitive substring match on name       |
+| `sortBy`         | enum   | `CreatedAt` | `CreatedAt` \| `Name` \| `Price`           |
+| `sortDescending` | bool   | false   |                                                |
+| `isActive`       | bool?  | –       | Omitted ⇒ active only; set `false` for inactive |
+
+Responses use `PagedResult<T>` — `{ items, page, pageSize, totalCount, totalPages }`.
+
+> **Getting a BusinessOwner account:** registration always creates a `Customer`.
+> To manage services, promote a user directly in the database:
+> ```bash
+> docker exec -e PGPASSWORD=<pwd> reservation-postgres \
+>   psql -U reservation -d reservationdb \
+>   -c "UPDATE users SET \"Role\"='BusinessOwner' WHERE \"Email\"='you@example.com';"
+> ```
+> Then **log in again** so the new role is embedded in a fresh access token.
+
 ## How to run
 
 1. **Start PostgreSQL** (reads `.env`):
@@ -244,5 +280,6 @@ docker compose down -v
 
 - [x] **Phase 1** — Solution scaffolding, infrastructure, domain model
 - [x] **Phase 2** — Authentication & authorization (JWT + refresh rotation, roles)
-- [ ] **Phase 3** — Business logic & API endpoints
-- [ ] **Phase 4** — Tests (unit & integration)
+- [x] **Phase 3** — Service management CRUD (pagination, filtering, role-based access)
+- [ ] **Phase 4** — Appointment booking logic
+- [ ] **Phase 5** — Tests (unit & integration)
