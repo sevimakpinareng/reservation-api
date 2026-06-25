@@ -17,6 +17,31 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reservation-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Development enables the Scalar API reference UI for the demo.
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_HTTP_PORTS: "8080"
+      # The API talks to Postgres over the internal compose network (service name "postgres").
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-reservationdb};Username=${POSTGRES_USER:-reservation};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your .env file}"
+      Jwt__Secret: ${JWT_SECRET:?Set JWT_SECRET in your .env file}
+      Jwt__Issuer: ${JWT_ISSUER:-ReservationSystem}
+      Jwt__Audience: ${JWT_AUDIENCE:-ReservationSystem}
+      Jwt__AccessTokenMinutes: ${JWT_ACCESS_TOKEN_MINUTES:-15}
+      Jwt__RefreshTokenDays: ${JWT_REFRESH_TOKEN_DAYS:-7}
+      # Apply EF Core migrations automatically on startup (demo convenience).
+      Database__MigrateOnStartup: "true"
+    ports:
+      - "${API_PORT:-8080}:8080"
+
 volumes:
   reservation_pgdata:
     name: reservation_pgdata

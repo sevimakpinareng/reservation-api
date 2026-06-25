@@ -55,6 +55,9 @@ if (!string.IsNullOrWhiteSpace(connectionString))
 
 var app = builder.Build();
 
+// Optional, opt-in: apply EF Core migrations on startup (off by default).
+await app.ApplyDatabaseMigrationsAsync();
+
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 

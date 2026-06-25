@@ -1,0 +1,31 @@
+# Build output
+**/bin/
+**/obj/
+**/out/
+artifacts/
+
+# IDE / VCS
+.git/
+.github/
+.vs/
+.vscode/
+.idea/
+
+# Tests are not needed in the runtime image
+tests/
+
+# Secrets & local config (never copy into the image)
+.env
+**/appsettings.Development.json
+**/appsettings.*.Local.json
+*.pfx
+secrets.json
+
+# Docs & misc
+**/*.md
+DEPLOYMENT.md
+LICENSE
+docker-compose.yml
+.dockerignore
+.editorconfig
+**/.DS_Store
