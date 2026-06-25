@@ -1,10 +1,11 @@
 # Reservation System API
 
 A reservation / appointment management REST API built with .NET 10 and a clean,
-layered architecture. **Phases 1–3 are complete**: solution scaffolding,
+layered architecture. **Phases 1–4 are complete**: solution scaffolding,
 infrastructure, the domain model, JWT authentication with refresh-token rotation
-and role-based authorization, and service-management CRUD with pagination,
-filtering, and sorting. Appointment booking logic and tests arrive in later phases.
+and role-based authorization, service-management CRUD, and appointment booking
+with conflict detection, status transitions, and role-based access. Automated
+tests arrive in the next phase.
 
 > 🔗 **Live demo:** _TODO — add deployment link_
 >
@@ -200,6 +201,55 @@ Responses use `PagedResult<T>` — `{ items, page, pageSize, totalCount, totalPa
 > ```
 > Then **log in again** so the new role is embedded in a fresh access token.
 
+## Appointments
+
+Booking flow for customers, with staff-managed lifecycle. All endpoints require
+authentication; the booking customer is always taken from the **access token**,
+never from the request body.
+
+| Method | Route                            | Auth                  | Description                          |
+| ------ | -------------------------------- | --------------------- | ------------------------------------ |
+| POST   | `/api/appointments`              | Any authenticated     | Book a slot (201 + `Location`)       |
+| GET    | `/api/appointments`              | Any authenticated     | Paged list (own only for customers)  |
+| GET    | `/api/appointments/{id}`         | Owner / staff         | Single appointment                   |
+| POST   | `/api/appointments/{id}/confirm` | BusinessOwner / Admin | `Pending → Confirmed`                |
+| POST   | `/api/appointments/{id}/complete`| BusinessOwner / Admin | `Confirmed → Completed`              |
+| POST   | `/api/appointments/{id}/cancel`  | Owner / staff         | `Pending`/`Confirmed → Cancelled`    |
+
+**Business rules** (enforced server-side):
+
+- **End time is computed** as `StartTime + Service.DurationMinutes` — clients send
+  only `serviceId` and `startTime`.
+- **No past bookings** — `StartTime` must be in the future (compared in UTC).
+- **No overlaps** — a new booking is rejected (`409`) if it overlaps a
+  non-cancelled appointment for the same service, where overlap means
+  `newStart < existingEnd && newEnd > existingStart` (half-open ranges, so a
+  booking starting exactly when another ends is allowed).
+- **Inactive/deleted services** cannot be booked (`400`/`404`).
+- **Status transitions** are validated; invalid moves (e.g. confirming a
+  completed appointment) return `400`.
+- **Visibility** — customers only ever see/act on their own appointments
+  (`403` otherwise); BusinessOwner/Admin see and manage all.
+
+**List query parameters** (`GET /api/appointments`): `page`, `pageSize` (max 100),
+`status`, `serviceId`, `from`/`to` (UTC start-time range), `sortBy`
+(`StartTime` | `CreatedAt` | `Status`), `sortDescending`.
+
+### Concurrency / race conditions
+
+Double-booking is prevented at two levels:
+
+1. **Application** — the overlap check and the insert run inside a database
+   **transaction**, giving a friendly `409` in the common case.
+2. **Database** — a PostgreSQL **GiST exclusion constraint**
+   (`ck_appointments_no_overlap`, via `btree_gist`) makes overlapping
+   `[StartTime, EndTime)` ranges for the same active appointment *physically
+   impossible*, even under two simultaneous requests that both pass the
+   application check. A constraint violation is surfaced as a `409`.
+
+This belt-and-braces approach means correctness does not depend on application
+timing — the database is the final arbiter.
+
 ## How to run
 
 1. **Start PostgreSQL** (reads `.env`):
@@ -281,5 +331,5 @@ docker compose down -v
 - [x] **Phase 1** — Solution scaffolding, infrastructure, domain model
 - [x] **Phase 2** — Authentication & authorization (JWT + refresh rotation, roles)
 - [x] **Phase 3** — Service management CRUD (pagination, filtering, role-based access)
-- [ ] **Phase 4** — Appointment booking logic
+- [x] **Phase 4** — Appointment booking (conflict detection, status transitions, RBAC)
 - [ ] **Phase 5** — Tests (unit & integration)

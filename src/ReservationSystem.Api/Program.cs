@@ -1,10 +1,12 @@
 using System.Text.Json.Serialization;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using ReservationSystem.Api.Authorization;
 using ReservationSystem.Api.Extensions;
 using ReservationSystem.Api.Middleware;
 using ReservationSystem.Api.OpenApi;
 using ReservationSystem.Application;
+using ReservationSystem.Application.Common.Interfaces;
 using ReservationSystem.Infrastructure;
 using Scalar.AspNetCore;
 using Serilog;
@@ -24,6 +26,10 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 // --- Authentication & authorization (JWT bearer + role policies) ---
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// --- Current user accessor (resolves identity from the request's claims) ---
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 
 // --- MVC controllers + FluentValidation auto-validation ---
 builder.Services.AddControllers()

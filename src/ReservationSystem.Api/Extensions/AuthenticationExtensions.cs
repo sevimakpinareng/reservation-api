@@ -63,6 +63,8 @@ public static class AuthenticationExtensions
                 policy => policy.RequireRole(nameof(UserRole.Admin)));
             options.AddPolicy(AuthorizationPolicies.ManageServices,
                 policy => policy.RequireRole(nameof(UserRole.BusinessOwner), nameof(UserRole.Admin)));
+            options.AddPolicy(AuthorizationPolicies.ManageAppointments,
+                policy => policy.RequireRole(nameof(UserRole.BusinessOwner), nameof(UserRole.Admin)));
         });
 
         return services;

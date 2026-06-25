@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using ReservationSystem.Domain.Entities;
 
 namespace ReservationSystem.Application.Common.Interfaces;
@@ -19,4 +20,7 @@ public interface IApplicationDbContext
     DbSet<RefreshToken> RefreshTokens { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Begins a database transaction (used to make booking atomic).</summary>
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 }

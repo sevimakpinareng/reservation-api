@@ -11,4 +11,9 @@ public static class AuthorizationPolicies
 
     /// <summary>Either a BusinessOwner or an Admin may manage services.</summary>
     public const string ManageServices = nameof(ManageServices);
+
+    /// <summary>
+    /// Either a BusinessOwner or an Admin may confirm/complete appointments.
+    /// </summary>
+    public const string ManageAppointments = nameof(ManageAppointments);
 }
