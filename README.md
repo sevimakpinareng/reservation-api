@@ -1,11 +1,11 @@
 # Reservation System API
 
 A reservation / appointment management REST API built with .NET 10 and a clean,
-layered architecture. **Phases 1–4 are complete**: solution scaffolding,
+layered architecture. **All five phases are complete**: solution scaffolding,
 infrastructure, the domain model, JWT authentication with refresh-token rotation
-and role-based authorization, service-management CRUD, and appointment booking
-with conflict detection, status transitions, and role-based access. Automated
-tests arrive in the next phase.
+and role-based authorization, service-management CRUD, appointment booking with
+conflict detection and status transitions, and a two-tier automated test suite
+(unit + Testcontainers-backed integration).
 
 > 🔗 **Live demo:** _TODO — add deployment link_
 >
@@ -24,6 +24,7 @@ tests arrive in the next phase.
 | Validation      | FluentValidation                             |
 | Logging         | Serilog (structured logging)                 |
 | Containerization| Docker Compose (local PostgreSQL)            |
+| Testing         | xUnit, FluentAssertions, Testcontainers      |
 
 ## Architecture
 
@@ -326,10 +327,41 @@ docker compose down
 docker compose down -v
 ```
 
+## Testing
+
+Two tiers of tests live in `tests/ReservationSystem.Tests`:
+
+- **Unit tests** (`Unit/`) — fast, no I/O. Cover the pure booking rules (overlap
+  with half-open intervals, end-time computation, status transitions), BCrypt
+  password hashing, and the FluentValidation validators.
+- **Integration tests** (`Integration/`) — exercise the real API over HTTP via
+  `WebApplicationFactory<Program>` against a throwaway **PostgreSQL 17** container
+  started with **Testcontainers**. Migrations (including the GiST overlap
+  constraint) are applied, so the true schema is tested. Each test resets the
+  database for isolation, so tests are deterministic and order-independent.
+
+The integration suite includes a **real concurrency test**: two identical booking
+requests are fired simultaneously and the suite asserts exactly one `201` and one
+`409`, proving the exclusion constraint defeats the race condition.
+
+### Running the tests
+
+Docker Desktop must be running (Testcontainers starts a container). Then:
+
+```bash
+dotnet test
+```
+
+That builds everything and runs both tiers. To run only the fast unit tests:
+
+```bash
+dotnet test --filter "FullyQualifiedName~Unit"
+```
+
 ## Roadmap
 
 - [x] **Phase 1** — Solution scaffolding, infrastructure, domain model
 - [x] **Phase 2** — Authentication & authorization (JWT + refresh rotation, roles)
 - [x] **Phase 3** — Service management CRUD (pagination, filtering, role-based access)
 - [x] **Phase 4** — Appointment booking (conflict detection, status transitions, RBAC)
-- [ ] **Phase 5** — Tests (unit & integration)
+- [x] **Phase 5** — Tests (unit + Testcontainers integration, incl. concurrency)

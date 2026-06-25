@@ -3,6 +3,7 @@ using ReservationSystem.Application.Appointments.Dtos;
 using ReservationSystem.Application.Common.Exceptions;
 using ReservationSystem.Application.Common.Interfaces;
 using ReservationSystem.Application.Common.Models;
+using ReservationSystem.Domain.Appointments;
 using ReservationSystem.Domain.Entities;
 using ReservationSystem.Domain.Enums;
 
@@ -37,7 +38,7 @@ public class AppointmentService(IApplicationDbContext db, ICurrentUser currentUs
             throw new BusinessRuleException("This service is not currently available for booking.");
         }
 
-        var endUtc = startUtc.AddMinutes(service.DurationMinutes);
+        var endUtc = AppointmentRules.ComputeEndTime(startUtc, service.DurationMinutes);
 
         // Atomic check-then-insert. The application-level overlap check gives a
         // friendly error in the common case; a PostgreSQL exclusion constraint
@@ -142,7 +143,7 @@ public class AppointmentService(IApplicationDbContext db, ICurrentUser currentUs
     public Task<AppointmentDto> ConfirmAsync(Guid id, CancellationToken cancellationToken = default) =>
         TransitionAsync(id, requireOwnershipForCustomer: false, (appointment) =>
         {
-            if (appointment.Status != AppointmentStatus.Pending)
+            if (!AppointmentRules.CanConfirm(appointment.Status))
             {
                 throw new BusinessRuleException($"Only pending appointments can be confirmed (current status: {appointment.Status}).");
             }
@@ -153,7 +154,7 @@ public class AppointmentService(IApplicationDbContext db, ICurrentUser currentUs
     public Task<AppointmentDto> CompleteAsync(Guid id, CancellationToken cancellationToken = default) =>
         TransitionAsync(id, requireOwnershipForCustomer: false, (appointment) =>
         {
-            if (appointment.Status != AppointmentStatus.Confirmed)
+            if (!AppointmentRules.CanComplete(appointment.Status))
             {
                 throw new BusinessRuleException($"Only confirmed appointments can be completed (current status: {appointment.Status}).");
             }
@@ -164,7 +165,7 @@ public class AppointmentService(IApplicationDbContext db, ICurrentUser currentUs
     public Task<AppointmentDto> CancelAsync(Guid id, CancellationToken cancellationToken = default) =>
         TransitionAsync(id, requireOwnershipForCustomer: true, (appointment) =>
         {
-            if (appointment.Status is not (AppointmentStatus.Pending or AppointmentStatus.Confirmed))
+            if (!AppointmentRules.CanCancel(appointment.Status))
             {
                 throw new BusinessRuleException($"Only pending or confirmed appointments can be cancelled (current status: {appointment.Status}).");
             }

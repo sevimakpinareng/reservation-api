@@ -93,3 +93,9 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 });
 
 app.Run();
+
+/// <summary>
+/// Exposed so the integration test project can bootstrap the real application
+/// with <c>WebApplicationFactory&lt;Program&gt;</c>. Behaviour is unchanged.
+/// </summary>
+public partial class Program;
