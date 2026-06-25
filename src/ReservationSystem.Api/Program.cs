@@ -18,7 +18,17 @@ var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
 {
-    builder.WebHost.UseUrls($"http://*:{port}");
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
+// Honour a platform-provided DATABASE_URL (postgresql://...) by translating it to
+// the Npgsql connection string. No-op otherwise, so the existing
+// ConnectionStrings:DefaultConnection path is unchanged for local dev and tests.
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrWhiteSpace(databaseUrl))
+{
+    builder.Configuration["ConnectionStrings:DefaultConnection"] =
+        ConnectionStringConverter.FromDatabaseUrl(databaseUrl);
 }
 
 // --- Serilog: structured logging, configured from appsettings + code defaults ---

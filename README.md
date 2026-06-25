@@ -267,10 +267,15 @@ CI runs the same suite on every push/PR — see [`.github/workflows/ci.yml`](.gi
 
 ## 🚢 Deployment
 
-A multi-stage [`Dockerfile`](Dockerfile) produces a small, non-root runtime image
-listening on port `8080`. See **[DEPLOYMENT.md](DEPLOYMENT.md)** for a
-platform-agnostic guide (managed PostgreSQL, required environment variables, and
-migration strategy).
+A multi-stage [`Dockerfile`](Dockerfile) produces a small, non-root runtime image.
+The app adapts to its host automatically: it binds to a `PORT` env var if injected
+and converts a `DATABASE_URL` (e.g. `postgresql://...`) into an Npgsql connection
+string — so PaaS platforms work without extra wiring.
+
+A [`render.yaml`](render.yaml) **Blueprint** provisions the database + API on
+[Render](https://render.com) in one click (**New → Blueprint → pick repo →
+Apply**). See **[DEPLOYMENT.md](DEPLOYMENT.md)** for the Blueprint walkthrough, a
+manual fallback, and a platform-agnostic guide (env vars, migration strategy).
 
 ## 📄 License
 
