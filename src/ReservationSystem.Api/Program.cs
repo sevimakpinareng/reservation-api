@@ -13,6 +13,14 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Honour a PORT environment variable when present (e.g. Render, Heroku, Cloud Run
+// inject it). No-op otherwise, so local/compose behaviour is unchanged.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+{
+    builder.WebHost.UseUrls($"http://*:{port}");
+}
+
 // --- Serilog: structured logging, configured from appsettings + code defaults ---
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Configuration(context.Configuration)
