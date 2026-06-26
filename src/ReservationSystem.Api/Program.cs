@@ -79,14 +79,13 @@ await app.ApplyDatabaseMigrationsAsync();
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 
-// --- API documentation: OpenAPI JSON + Scalar interactive UI (dev only) ---
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference(options => options
-        .WithTitle("Reservation System API")
-        .WithTheme(ScalarTheme.Purple));
-}
+// --- API documentation: OpenAPI JSON + Scalar interactive UI ---
+// Intentionally exposed in ALL environments: this is a portfolio/demo project, so
+// the live deployment serves the interactive Scalar reference at /scalar/v1.
+app.MapOpenApi();
+app.MapScalarApiReference(options => options
+    .WithTitle("Reservation System API")
+    .WithTheme(ScalarTheme.Purple));
 
 app.UseHttpsRedirection();
 

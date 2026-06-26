@@ -13,9 +13,13 @@ by a PostgreSQL exclusion constraint.
 > The CI badge points at `sevimakpinareng/reservation-api` — update the owner/repo
 > in the badge URLs if you push to a different path.
 
-> 🔗 **Live demo:** _TODO — add deployment link_
+> 🔗 **Live demo:** [Scalar API reference](https://reservation-api-tslv.onrender.com/scalar/v1) ·
+> [health check](https://reservation-api-tslv.onrender.com/health)
 >
-> 🖼️ **Screenshot:** _TODO — add a Scalar API reference screenshot_
+> ⏳ The demo runs on Render's free tier, which sleeps when idle — the **first
+> request after inactivity can take ~50 s** (cold start). Subsequent calls are fast.
+
+[![Scalar API reference](docs/screenshot.png)](https://reservation-api-tslv.onrender.com/scalar/v1)
 
 ## ✨ Highlights
 
