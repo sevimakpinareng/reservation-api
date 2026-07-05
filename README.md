@@ -10,9 +10,6 @@ by a PostgreSQL exclusion constraint.
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-> The CI badge points at `sevimakpinareng/reservation-api` — update the owner/repo
-> in the badge URLs if you push to a different path.
-
 > 🔗 **Live demo:** [Scalar API reference](https://reservation-api-tslv.onrender.com/scalar/v1) ·
 > [health check](https://reservation-api-tslv.onrender.com/health)
 >
